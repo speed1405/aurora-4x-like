@@ -58,9 +58,18 @@ std::string Game::exploreSystem(const std::string& systemName) {
         std::transform(searchNameLower.begin(), searchNameLower.end(), searchNameLower.begin(), toLowerChar);
         
         if (sysNameLower == searchNameLower) {
+            const bool wasExplored = system->isExplored();
             system->explore();
-            return "Explored " + system->getName() + "! Found " + 
-                   std::to_string(system->getPlanets().size()) + " planets.";
+
+            if (!wasExplored) {
+                const int reward = 10 + static_cast<int>(system->getPlanets().size()) * 2;
+                empire->getResources().add(ResourceType::RESEARCH_POINTS, reward);
+                return "Explored " + system->getName() + "! Found " +
+                       std::to_string(system->getPlanets().size()) + " planets. Gained " +
+                       std::to_string(reward) + " research points.";
+            }
+
+            return "System already explored: " + system->getName();
         }
     }
     return "System not found";
