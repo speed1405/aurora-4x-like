@@ -1,5 +1,8 @@
 #include "resources.h"
 
+#include <algorithm>
+#include <cctype>
+
 std::string resourceTypeToString(ResourceType type) {
     switch(type) {
         case ResourceType::MINERALS: return "Minerals";
@@ -19,6 +22,31 @@ std::string resourceTypeToString(ResourceType type) {
         case ResourceType::GALLICITE: return "Gallicite";
         default: return "Unknown";
     }
+}
+
+static std::string toLower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return s;
+}
+
+bool resourceTypeFromString(const std::string& s, ResourceType& out) {
+    const std::string v = toLower(s);
+    if (v == "minerals") { out = ResourceType::MINERALS; return true; }
+    if (v == "energy") { out = ResourceType::ENERGY; return true; }
+    if (v == "population") { out = ResourceType::POPULATION; return true; }
+    if (v == "research points" || v == "research_points" || v == "rp" || v == "research") { out = ResourceType::RESEARCH_POINTS; return true; }
+    if (v == "fuel") { out = ResourceType::FUEL; return true; }
+    if (v == "duranium") { out = ResourceType::DURANIUM; return true; }
+    if (v == "neutronium") { out = ResourceType::NEUTRONIUM; return true; }
+    if (v == "corundium") { out = ResourceType::CORUNDIUM; return true; }
+    if (v == "tritanium") { out = ResourceType::TRITANIUM; return true; }
+    if (v == "boronide") { out = ResourceType::BORONIDE; return true; }
+    if (v == "mercassium") { out = ResourceType::MERCASSIUM; return true; }
+    if (v == "vendarite") { out = ResourceType::VENDARITE; return true; }
+    if (v == "sorium") { out = ResourceType::SORIUM; return true; }
+    if (v == "uridium") { out = ResourceType::URIDIUM; return true; }
+    if (v == "gallicite") { out = ResourceType::GALLICITE; return true; }
+    return false;
 }
 
 ResourceStorage::ResourceStorage() {
@@ -50,6 +78,10 @@ int ResourceStorage::get(ResourceType type) const {
 
 void ResourceStorage::add(ResourceType type, int amount) {
     resources[type] += amount;
+}
+
+void ResourceStorage::set(ResourceType type, int amount) {
+    resources[type] = amount;
 }
 
 bool ResourceStorage::consume(ResourceType type, int amount) {

@@ -5,6 +5,20 @@
 #include <vector>
 #include <memory>
 
+enum class ShipClass {
+    SCOUT,
+    FIGHTER,
+    CORVETTE,
+    FRIGATE,
+    DESTROYER,
+    CRUISER,
+    BATTLESHIP,
+    CARRIER
+};
+
+std::string shipClassToString(ShipClass sc);
+bool shipClassFromString(const std::string& s, ShipClass& out);
+
 struct CombatShipState {
     std::string name;
     ShipClass shipClass;
@@ -21,19 +35,6 @@ struct CombatFrame {
     std::vector<CombatShipState> attackerShips;
     std::vector<CombatShipState> defenderShips;
 };
-
-enum class ShipClass {
-    SCOUT,
-    FIGHTER,
-    CORVETTE,
-    FRIGATE,
-    DESTROYER,
-    CRUISER,
-    BATTLESHIP,
-    CARRIER
-};
-
-std::string shipClassToString(ShipClass sc);
 
 class Weapon {
 private:
@@ -94,6 +95,7 @@ public:
     bool isDefeated() const;
     
     const std::string& getName() const { return name; }
+    const std::string& getOwner() const { return owner; }
     const std::vector<std::shared_ptr<Ship>>& getShips() const { return ships; }
     std::vector<std::shared_ptr<Ship>>& getShips() { return ships; }
     void setLocation(std::shared_ptr<StarSystem> sys) { location = sys; }

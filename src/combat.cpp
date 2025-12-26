@@ -1,7 +1,21 @@
 #include "combat.h"
 #include <algorithm>
+#include <cctype>
 #include <random>
 #include <sstream>
+
+namespace {
+CombatShipState toShipState(const std::shared_ptr<Ship>& ship) {
+    CombatShipState st;
+    st.name = ship ? ship->getName() : "";
+    st.shipClass = ship ? ship->getShipClass() : ShipClass::SCOUT;
+    st.hull = ship ? ship->getHull() : 0;
+    st.maxHull = ship ? ship->getMaxHull() : 0;
+    st.shields = ship ? ship->getShields() : 0;
+    st.maxShields = ship ? ship->getMaxShields() : 0;
+    return st;
+}
+} // namespace
 
 static std::string makeBar(int value, int maxValue, int width) {
     if (maxValue <= 0) {
@@ -65,6 +79,24 @@ std::string shipClassToString(ShipClass sc) {
         case ShipClass::CARRIER: return "Carrier";
         default: return "Unknown";
     }
+}
+
+static std::string toLower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return s;
+}
+
+bool shipClassFromString(const std::string& s, ShipClass& out) {
+    const std::string v = toLower(s);
+    if (v == "scout") { out = ShipClass::SCOUT; return true; }
+    if (v == "fighter") { out = ShipClass::FIGHTER; return true; }
+    if (v == "corvette") { out = ShipClass::CORVETTE; return true; }
+    if (v == "frigate") { out = ShipClass::FRIGATE; return true; }
+    if (v == "destroyer") { out = ShipClass::DESTROYER; return true; }
+    if (v == "cruiser") { out = ShipClass::CRUISER; return true; }
+    if (v == "battleship") { out = ShipClass::BATTLESHIP; return true; }
+    if (v == "carrier") { out = ShipClass::CARRIER; return true; }
+    return false;
 }
 
 Weapon::Weapon(const std::string& nm, int dmg, double acc, int rng)
@@ -145,11 +177,36 @@ bool Fleet::isDefeated() const {
 Combat::Combat(std::shared_ptr<Fleet> atk, std::shared_ptr<Fleet> def)
     : attacker(atk), defender(def), round(0) {}
 
+void Combat::recordFrame() {
+    CombatFrame f;
+    f.round = round;
+    f.attackerName = attacker ? attacker->getName() : "Attacker";
+    f.defenderName = defender ? defender->getName() : "Defender";
+
+    if (attacker) {
+        for (const auto& ship : attacker->getShips()) {
+            if (!ship) continue;
+            f.attackerShips.push_back(toShipState(ship));
+        }
+    }
+    if (defender) {
+        for (const auto& ship : defender->getShips()) {
+            if (!ship) continue;
+            f.defenderShips.push_back(toShipState(ship));
+        }
+    }
+
+    frames.push_back(std::move(f));
+}
+
 void Combat::resolveRound() {
     round++;
     std::stringstream ss;
     ss << "=== Combat Round " << round << " ===";
     combatLog.push_back(ss.str());
+
+    const int atkShipsBefore = attacker ? static_cast<int>(attacker->getShips().size()) : 0;
+    const int defShipsBefore = defender ? static_cast<int>(defender->getShips().size()) : 0;
     
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -216,13 +273,30 @@ void Combat::resolveRound() {
     attacker->removeDestroyed();
     defender->removeDestroyed();
 
+    const int atkShipsAfter = attacker ? static_cast<int>(attacker->getShips().size()) : 0;
+    const int defShipsAfter = defender ? static_cast<int>(defender->getShips().size()) : 0;
+    {
+        std::ostringstream sum;
+        sum << "Round " << round << " summary: "
+            << attacker->getName() << " lost " << std::max(0, atkShipsBefore - atkShipsAfter)
+            << ", " << defender->getName() << " lost " << std::max(0, defShipsBefore - defShipsAfter) << ".";
+        combatLog.push_back(sum.str());
+    }
+
     // "Visualization": append a compact status snapshot after the round
     combatLog.push_back("--- Status ---");
     appendFleetSnapshot(combatLog, *attacker);
     appendFleetSnapshot(combatLog, *defender);
+
+    recordFrame();
 }
 
 std::shared_ptr<Fleet> Combat::resolve(int maxRounds) {
+    combatLog.clear();
+    frames.clear();
+    round = 0;
+    recordFrame();
+
     while (round < maxRounds) {
         resolveRound();
         

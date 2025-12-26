@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <random>
+#include <cstdint>
 #include "resources.h"
 
 class Star {
@@ -13,7 +15,7 @@ private:
     std::string starType;
 
 public:
-    Star(const std::string& name, const std::string& type = "");
+    Star(const std::string& name, std::mt19937& gen, const std::string& type = "");
     
     const std::string& getName() const { return name; }
     const std::string& getStarType() const { return starType; }
@@ -29,10 +31,10 @@ private:
     bool colonized;
     std::shared_ptr<Colony> colony;
     
-    void generateMinerals();
+    void generateMinerals(std::mt19937& gen);
 
 public:
-    Planet(const std::string& name, const std::string& type = "");
+    Planet(const std::string& name, std::mt19937& gen, const std::string& type = "");
     
     void colonize(std::shared_ptr<Colony> col);
     
@@ -50,10 +52,10 @@ private:
     std::vector<std::shared_ptr<Planet>> planets;
     bool explored;
     
-    void generatePlanets();
+    void generatePlanets(std::mt19937& gen);
 
 public:
-    StarSystem(const std::string& name, int x = 0, int y = 0, int z = 0);
+    StarSystem(const std::string& name, std::mt19937& gen, int x = 0, int y = 0, int z = 0);
     
     void explore() { explored = true; }
     std::vector<std::shared_ptr<Planet>> getColonizablePlanets() const;
@@ -71,15 +73,21 @@ class Galaxy {
 private:
     std::vector<std::shared_ptr<StarSystem>> systems;
     std::shared_ptr<StarSystem> homeSystem;
+
+    uint32_t seed;
+    std::mt19937 gen;
     
     void generateGalaxy(int numSystems);
     std::string generateStarName(int index);
 
 public:
-    Galaxy(int numSystems = 20);
+    Galaxy(int numSystems = 20, uint32_t seed = 0);
     
     std::vector<std::shared_ptr<StarSystem>> getExploredSystems() const;
     std::vector<std::shared_ptr<StarSystem>> getUnexploredSystems() const;
+
+    uint32_t getSeed() const { return seed; }
+    std::shared_ptr<StarSystem> findSystemByName(const std::string& name) const;
     
     const std::vector<std::shared_ptr<StarSystem>>& getSystems() const { return systems; }
     std::shared_ptr<StarSystem> getHomeSystem() const { return homeSystem; }

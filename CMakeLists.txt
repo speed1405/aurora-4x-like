@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(Aurora4XLike VERSION 0.1.0 LANGUAGES CXX)
 
+option(AURORA_WINDOWS_GUI "Build Windows mouse-driven GUI (Win32)" ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -22,10 +24,19 @@ set(SOURCES
 
 if (WIN32)
     list(APPEND SOURCES src/battle_viewer_win32.cpp)
+
+    if (AURORA_WINDOWS_GUI)
+        list(REMOVE_ITEM SOURCES src/main.cpp)
+        list(APPEND SOURCES src/main_win32_gui.cpp src/gui_win32.cpp)
+    endif()
 endif()
 
 # Executable
-add_executable(aurora4x ${SOURCES})
+if (WIN32 AND AURORA_WINDOWS_GUI)
+    add_executable(aurora4x WIN32 ${SOURCES})
+else()
+    add_executable(aurora4x ${SOURCES})
+endif()
 
 # Find and link ncurses library for mouse support (Unix-like systems only)
 if(UNIX)

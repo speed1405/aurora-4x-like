@@ -1,14 +1,13 @@
 #include "galaxy.h"
 #include "empire.h"
-#include <random>
 #include <algorithm>
+#include <cctype>
+#include <random>
 
-Star::Star(const std::string& nm, const std::string& type) : name(nm) {
+Star::Star(const std::string& nm, std::mt19937& gen, const std::string& type) : name(nm) {
     static const std::vector<std::string> types = {
         "Red Dwarf", "Yellow Dwarf", "Blue Giant", "Red Giant", "White Dwarf"
     };
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
     
     if (type.empty()) {
         std::uniform_int_distribution<std::size_t> dis(0, types.size() - 1);
@@ -18,13 +17,11 @@ Star::Star(const std::string& nm, const std::string& type) : name(nm) {
     }
 }
 
-Planet::Planet(const std::string& nm, const std::string& type)
+Planet::Planet(const std::string& nm, std::mt19937& gen, const std::string& type)
     : name(nm), colonized(false) {
     static const std::vector<std::string> types = {
         "Terrestrial", "Gas Giant", "Ice", "Desert", "Ocean", "Volcanic"
     };
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
     
     if (type.empty()) {
         std::uniform_int_distribution<std::size_t> dis(0, types.size() - 1);
@@ -33,12 +30,10 @@ Planet::Planet(const std::string& nm, const std::string& type)
         planetType = type;
     }
     
-    generateMinerals();
+    generateMinerals(gen);
 }
 
-void Planet::generateMinerals() {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
+void Planet::generateMinerals(std::mt19937& gen) {
     std::uniform_real_distribution<> chance(0.0, 1.0);
     std::uniform_int_distribution<> amount(1000, 100000);
     
@@ -61,20 +56,18 @@ void Planet::colonize(std::shared_ptr<Colony> col) {
     colony = col;
 }
 
-StarSystem::StarSystem(const std::string& nm, int posX, int posY, int posZ)
-    : name(nm), x(posX), y(posY), z(posZ), star(nm + " Primary"), explored(false) {
-    generatePlanets();
+StarSystem::StarSystem(const std::string& nm, std::mt19937& gen, int posX, int posY, int posZ)
+    : name(nm), x(posX), y(posY), z(posZ), star(nm + " Primary", gen), explored(false) {
+    generatePlanets(gen);
 }
 
-void StarSystem::generatePlanets() {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
+void StarSystem::generatePlanets(std::mt19937& gen) {
     std::uniform_int_distribution<> numPlanets(2, 10);
     
     int count = numPlanets(gen);
     for (int i = 0; i < count; ++i) {
         std::string planetName = name + " " + char('A' + i);
-        planets.push_back(std::make_shared<Planet>(planetName));
+        planets.push_back(std::make_shared<Planet>(planetName, gen));
     }
 }
 
@@ -89,19 +82,18 @@ std::vector<std::shared_ptr<Planet>> StarSystem::getColonizablePlanets() const {
     return colonizable;
 }
 
-Galaxy::Galaxy(int numSystems) {
+Galaxy::Galaxy(int numSystems, uint32_t seed)
+    : seed(seed ? seed : std::random_device{}()), gen(this->seed) {
     generateGalaxy(numSystems);
 }
 
 void Galaxy::generateGalaxy(int numSystems) {
     // Create home system
-    homeSystem = std::make_shared<StarSystem>("Sol", 0, 0, 0);
+    homeSystem = std::make_shared<StarSystem>("Sol", gen, 0, 0, 0);
     homeSystem->explore();
     systems.push_back(homeSystem);
     
     // Generate other systems
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
     std::uniform_int_distribution<> xDist(-50, 50);
     std::uniform_int_distribution<> yDist(-50, 50);
     std::uniform_int_distribution<> zDist(-20, 20);
@@ -111,7 +103,7 @@ void Galaxy::generateGalaxy(int numSystems) {
         int x = xDist(gen);
         int y = yDist(gen);
         int z = zDist(gen);
-        systems.push_back(std::make_shared<StarSystem>(name, x, y, z));
+        systems.push_back(std::make_shared<StarSystem>(name, gen, x, y, z));
     }
 }
 
@@ -126,12 +118,23 @@ std::string Galaxy::generateStarName(int index) {
         "Cassiopeiae", "Orionis", "Pegasi", "Andromedae"
     };
     
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
     std::uniform_int_distribution<std::size_t> prefixDist(0, prefixes.size() - 1);
     std::uniform_int_distribution<std::size_t> suffixDist(0, suffixes.size() - 1);
     
     return prefixes[prefixDist(gen)] + " " + suffixes[suffixDist(gen)];
+}
+
+std::shared_ptr<StarSystem> Galaxy::findSystemByName(const std::string& name) const {
+    auto toLowerChar = [](unsigned char c) { return static_cast<char>(std::tolower(c)); };
+    std::string want = name;
+    std::transform(want.begin(), want.end(), want.begin(), toLowerChar);
+    for (const auto& sys : systems) {
+        if (!sys) continue;
+        std::string cur = sys->getName();
+        std::transform(cur.begin(), cur.end(), cur.begin(), toLowerChar);
+        if (cur == want) return sys;
+    }
+    return nullptr;
 }
 
 std::vector<std::shared_ptr<StarSystem>> Galaxy::getExploredSystems() const {

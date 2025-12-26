@@ -23,6 +23,7 @@ enum class ResourceType {
 };
 
 std::string resourceTypeToString(ResourceType type);
+bool resourceTypeFromString(const std::string& s, ResourceType& out);
 
 class ResourceStorage {
 private:
@@ -34,10 +35,13 @@ public:
     
     int get(ResourceType type) const;
     void add(ResourceType type, int amount);
+    void set(ResourceType type, int amount);
     bool consume(ResourceType type, int amount);
     void produce(int turns = 1);
     bool canAfford(const std::map<ResourceType, int>& costs) const;
     bool payCosts(const std::map<ResourceType, int>& costs);
+
+    const std::map<ResourceType, int>& snapshot() const { return resources; }
 };
 
 class ResourceNode {

@@ -24,8 +24,13 @@ public:
     void grow();
     void buildMine() { mines++; }
     void buildFactory() { factories++; }
+
+    void setPopulationForLoad(int p) { population = p; }
+    void setMinesForLoad(int v) { mines = v; }
+    void setFactoriesForLoad(int v) { factories = v; }
     
     const std::string& getName() const { return name; }
+    std::shared_ptr<Planet> getPlanet() const { return planet; }
     int getPopulation() const { return population; }
     int getMines() const { return mines; }
     int getFactories() const { return factories; }
@@ -50,6 +55,8 @@ public:
     
     std::string advanceTurn();
     bool setResearch(const std::string& techId);
+    void setTurnForLoad(int t) { turn = t; }
+    void setCurrentResearchForLoad(const std::string& techId) { currentResearch = techId; }
     void addColony(std::shared_ptr<Colony> colony);
     void addFleet(std::shared_ptr<Fleet> fleet);
     

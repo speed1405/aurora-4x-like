@@ -49,6 +49,9 @@ public:
     
     bool isAvailable(const std::set<std::string>& researchedTechs) const;
     bool addProgress(int points);
+
+    void setProgressForLoad(int p);
+    void setResearchedForLoad(bool v);
     
     const std::string& getId() const { return techId; }
     const std::string& getName() const { return name; }
@@ -74,10 +77,14 @@ public:
     ResearchTree();
     
     std::vector<std::shared_ptr<Technology>> getAvailableTechs() const;
+    std::vector<std::shared_ptr<Technology>> getAllTechs() const;
     bool research(const std::string& techId, int points);
     std::shared_ptr<Technology> getTech(const std::string& techId) const;
     bool isResearched(const std::string& techId) const;
     int getResearchedCount() const { return static_cast<int>(researched.size()); }
+
+    void setTechStateForLoad(const std::string& techId, int progress, bool researchedFlag);
+    const std::set<std::string>& getResearchedSetForLoad() const { return researched; }
 };
 
 #endif // RESEARCH_H
