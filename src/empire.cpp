@@ -30,18 +30,28 @@ std::string Empire::advanceTurn() {
             const int pointsToUse = std::min({availableRP, maxSpendPerTurn, remaining});
 
             if (pointsToUse > 0) {
+                const int beforeProgress = tech->getProgress();
                 const bool completed = research.research(currentResearch, pointsToUse);
-                resources.consume(ResourceType::RESEARCH_POINTS, pointsToUse);
+                const int afterProgress = tech->getProgress();
+                const int spent = std::max(0, afterProgress - beforeProgress);
+
+                if (spent > 0) {
+                    resources.consume(ResourceType::RESEARCH_POINTS, spent);
+                } else {
+                    // Research could not advance (typically unmet prerequisites); do not consume RP.
+                    return "Turn " + std::to_string(turn) + " completed. Research blocked: prerequisites not met for " +
+                           tech->getName() + ".";
+                }
 
                 if (completed) {
                     const std::string techName = tech->getName();
                     currentResearch = "";
                     return "Turn " + std::to_string(turn) + " completed. Spent " +
-                           std::to_string(pointsToUse) + " RP. Research completed: " + techName + "!";
+                           std::to_string(spent) + " RP. Research completed: " + techName + "!";
                 }
 
                 return "Turn " + std::to_string(turn) + " completed. Spent " +
-                       std::to_string(pointsToUse) + " RP on " + tech->getName() +
+                       std::to_string(spent) + " RP on " + tech->getName() +
                        " (" + std::to_string(tech->getProgress()) + "/" + std::to_string(tech->getCost()) + ")";
             }
         }
