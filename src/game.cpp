@@ -456,8 +456,16 @@ std::string Game::quickLoad(const std::string& path) {
             continue;
         }
 
-        if (section == Section::Player || section == Section::Hostile) {
-            auto& e = curEmpire();
+        if (section == Section::Player || section == Section::Hostile || section == Section::Colonies || section == Section::Fleets) {
+            SavedEmpire* ePtr = nullptr;
+            if (section == Section::Hostile && curHostile) {
+                ePtr = &curHostile->e;
+            } else {
+                // Player sections (including legacy [Colonies]/[Fleets])
+                ePtr = &player;
+            }
+
+            auto& e = *ePtr;
             if (key == "name") e.name = value;
             else if (key == "turn") { int t = 0; if (parseInt(value, t)) e.turn = t; }
             else if (key == "currentResearch") e.currentResearch = value;

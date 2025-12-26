@@ -32,6 +32,8 @@ enum ControlId : int {
     NAV_COMBAT,
     NAV_HOSTILES,
     NAV_ADVANCE,
+    NAV_SAVE,
+    NAV_LOAD,
     NAV_HELP,
     NAV_QUIT,
 
@@ -60,6 +62,8 @@ struct AppState {
     HWND btnCombat{};
     HWND btnHostiles{};
     HWND btnAdvance{};
+    HWND btnSave{};
+    HWND btnLoad{};
     HWND btnHelp{};
     HWND btnQuit{};
 
@@ -461,6 +465,72 @@ static void snapshotListSelection(AppState& s) {
     }
 }
 
+static void appendSelectionPreview(AppState& s) {
+    if (!s.game) return;
+
+    switch (s.view) {
+        case View::Research: {
+            if (s.selectedTechId.empty()) return;
+            auto tech = s.game->getEmpire()->getResearch().getTech(s.selectedTechId);
+            if (!tech) return;
+            std::ostringstream oss;
+            oss << "Selected tech: " << tech->getName() << " (Cost " << tech->getCost() << " RP, "
+                << techCategoryToString(tech->getCategory()) << ")";
+            appendLog(s, oss.str());
+            break;
+        }
+        case View::Explore: {
+            if (s.selectedSystemName.empty()) return;
+            auto sys = s.game->getGalaxy()->findSystemByName(s.selectedSystemName);
+            if (!sys) return;
+            std::ostringstream oss;
+            oss << "Selected system: " << sys->getName() << " (Planets " << sys->getPlanets().size() << ")";
+            if (systemHasHostiles(*s.game, sys)) oss << " [Hostiles]";
+            appendLog(s, oss.str());
+            break;
+        }
+        case View::Hostiles: {
+            if (s.selectedHostileName.empty()) return;
+            std::ostringstream oss;
+            oss << "Selected hostile: " << s.selectedHostileName << " | War: "
+                << (s.game->isHostileAtWar(s.selectedHostileName) ? "Yes" : "No");
+            appendLog(s, oss.str());
+            break;
+        }
+        case View::Fleet: {
+            const std::string fleetName = getComboSelectedText(s.comboFleetA);
+            const int classSel = s.comboShipClass ? (int)SendMessageA(s.comboShipClass, CB_GETCURSEL, 0, 0) : -1;
+            if (!fleetName.empty()) {
+                int strength = 0;
+                int ships = 0;
+                for (const auto& f : s.game->getEmpire()->getFleets()) {
+                    if (f && f->getName() == fleetName) {
+                        strength = f->getCombatStrength();
+                        ships = (int)f->getShips().size();
+                        break;
+                    }
+                }
+                std::ostringstream oss;
+                oss << "Fleet: " << fleetName << " (Ships " << ships << ", Strength " << strength << ")";
+                if (classSel >= 0) {
+                    oss << " | Build: " << shipClassToString(shipClassFromComboIndex(classSel));
+                }
+                appendLog(s, oss.str());
+            }
+            break;
+        }
+        case View::Combat: {
+            const std::string a = getComboSelectedText(s.comboFleetA);
+            const std::string b = getComboSelectedText(s.comboFleetB);
+            if (a.empty() || b.empty()) return;
+            appendLog(s, "Combat selection: " + a + " vs " + b);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 static void doAction(AppState& s) {
     if (!s.game) return;
 
@@ -599,6 +669,8 @@ static void layout(AppState& s) {
     placeNav(s.btnCombat);
     placeNav(s.btnHostiles);
     placeNav(s.btnAdvance);
+    placeNav(s.btnSave);
+    placeNav(s.btnLoad);
     placeNav(s.btnHelp);
     placeNav(s.btnQuit);
 
@@ -668,10 +740,32 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                     case NAV_HOSTILES: setView(*s, View::Hostiles); return 0;
                     case NAV_HELP: setView(*s, View::Help); return 0;
                     case NAV_ADVANCE: doAdvanceTurn(*s); return 0;
+                    case NAV_SAVE: appendLog(*s, ""); appendLog(*s, s->game->quickSave()); return 0;
+                    case NAV_LOAD: {
+                        appendLog(*s, "");
+                        appendLog(*s, s->game->quickLoad());
+                        s->selectedTechId.clear();
+                        s->selectedSystemName.clear();
+                        s->selectedHostileName.clear();
+                        refreshContent(*s, false);
+                        return 0;
+                    }
                     case NAV_QUIT: DestroyWindow(hwnd); return 0;
                     case BTN_ACTION: doAction(*s); return 0;
                 }
             }
+
+            if (id == LIST_MAIN && code == LBN_SELCHANGE) {
+                snapshotListSelection(*s);
+                appendSelectionPreview(*s);
+                return 0;
+            }
+
+            if ((id == COMBO_FLEET_A || id == COMBO_FLEET_B || id == COMBO_SHIP_CLASS) && code == CBN_SELCHANGE) {
+                appendSelectionPreview(*s);
+                return 0;
+            }
+
             // Double click list to activate
             if (id == LIST_MAIN && code == LBN_DBLCLK) {
                 doAction(*s);
@@ -750,6 +844,8 @@ int runAuroraGuiWin32() {
     state.btnCombat = makeButton(hwnd, "Combat", NAV_COMBAT);
     state.btnHostiles = makeButton(hwnd, "Hostiles", NAV_HOSTILES);
     state.btnAdvance = makeButton(hwnd, "Advance Turn", NAV_ADVANCE);
+    state.btnSave = makeButton(hwnd, "Save", NAV_SAVE);
+    state.btnLoad = makeButton(hwnd, "Load", NAV_LOAD);
     state.btnHelp = makeButton(hwnd, "Help", NAV_HELP);
     state.btnQuit = makeButton(hwnd, "Quit", NAV_QUIT);
 
