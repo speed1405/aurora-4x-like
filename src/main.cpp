@@ -1,284 +1,196 @@
 #include "game.h"
+#include "ui.h"
 #include <iostream>
 #include <string>
-#include <limits>
-#include <iomanip>
+#include <sstream>
 
-void printHeader() {
-    std::cout << std::string(60, '=') << "\n";
-    std::cout << std::setw(45) << "AURORA 4X-LIKE: Space Empire Builder" << "\n";
-    std::cout << std::string(60, '=') << "\n\n";
-}
+// Forward declarations
+void displayEmpireStatus(Game& game, UIManager& ui);
+void researchMenu(Game& game, UIManager& ui);
+void exploreMenu(Game& game, UIManager& ui);
+void fleetMenu(Game& game, UIManager& ui);
+void combatMenu(Game& game, UIManager& ui);
+void showHelp(UIManager& ui);
 
-void printMenu() {
-    std::cout << "\n" << std::string(60, '=') << "\n";
-    std::cout << std::setw(35) << "MAIN MENU" << "\n";
-    std::cout << std::string(60, '=') << "\n";
-    std::cout << "1. Empire Status\n";
-    std::cout << "2. Research\n";
-    std::cout << "3. Explore Galaxy\n";
-    std::cout << "4. Fleet Management\n";
-    std::cout << "5. Combat Simulation\n";
-    std::cout << "6. Advance Turn\n";
-    std::cout << "7. Help\n";
-    std::cout << "0. Exit\n";
-    std::cout << std::string(60, '=') << "\n";
-}
-
-void displayEmpireStatus(Game& game) {
+void displayEmpireStatus(Game& game, UIManager& ui) {
     auto empire = game.getEmpire();
     
-    std::cout << "\n" << std::string(60, '=') << "\n";
-    std::cout << "EMPIRE: " << empire->getName() << "\n";
-    std::cout << std::string(60, '=') << "\n";
-    std::cout << "Turn: " << empire->getTurn() << "\n";
-    std::cout << "Colonies: " << empire->getColonies().size() << "\n";
-    std::cout << "Fleets: " << empire->getFleets().size() << "\n";
-    std::cout << "Researched Technologies: " << empire->getResearch().getResearchedCount() << "\n";
-    std::cout << "Current Research: " << (empire->getCurrentResearch().empty() ? "None" : empire->getCurrentResearch()) << "\n";
-    std::cout << "\nResources:\n";
-    std::cout << "  Minerals: " << empire->getResources().get(ResourceType::MINERALS) << "\n";
-    std::cout << "  Energy: " << empire->getResources().get(ResourceType::ENERGY) << "\n";
-    std::cout << "  Research Points: " << empire->getResources().get(ResourceType::RESEARCH_POINTS) << "\n";
-    std::cout << std::string(60, '=') << "\n";
+    std::ostringstream oss;
+    oss << "EMPIRE: " << empire->getName() << "\n\n";
+    oss << "Turn: " << empire->getTurn() << "\n";
+    oss << "Colonies: " << empire->getColonies().size() << "\n";
+    oss << "Fleets: " << empire->getFleets().size() << "\n";
+    oss << "Researched Technologies: " << empire->getResearch().getResearchedCount() << "\n";
+    oss << "Current Research: " << (empire->getCurrentResearch().empty() ? "None" : empire->getCurrentResearch()) << "\n";
+    oss << "\nResources:\n";
+    oss << "  Minerals: " << empire->getResources().get(ResourceType::MINERALS) << "\n";
+    oss << "  Energy: " << empire->getResources().get(ResourceType::ENERGY) << "\n";
+    oss << "  Research Points: " << empire->getResources().get(ResourceType::RESEARCH_POINTS) << "\n";
+    
+    ui.displayText(oss.str(), true);
 }
 
-void researchMenu(Game& game) {
-    while (true) {
-        std::cout << "\n" << std::string(60, '=') << "\n";
-        std::cout << std::setw(35) << "RESEARCH MENU" << "\n";
-        std::cout << std::string(60, '=') << "\n";
-        
+void researchMenu(Game& game, UIManager& ui) {
+    bool inResearchMenu = true;
+    
+    while (inResearchMenu) {
         auto empire = game.getEmpire();
-        std::cout << "Current Research: " << (empire->getCurrentResearch().empty() ? "None" : empire->getCurrentResearch()) << "\n";
-        std::cout << "Research Points Available: " << empire->getResources().get(ResourceType::RESEARCH_POINTS) << "\n";
-        
         auto available = game.getAvailableResearch();
         
-        if (available.empty()) {
-            std::cout << "\nNo technologies available for research.\n";
-            std::cout << "(Prerequisites not met or all researched)\n";
-        } else {
-            std::cout << "\nAvailable Technologies:\n";
-            for (size_t i = 0; i < available.size(); ++i) {
-                auto tech = available[i];
-                std::cout << (i + 1) << ". " << tech->getName() 
-                         << " (" << techCategoryToString(tech->getCategory()) 
-                         << ", " << techEraToString(tech->getEra()) << ")\n";
-                std::cout << "   Cost: " << tech->getCost() << " RP, Progress: " 
-                         << tech->getProgress() << "/" << tech->getCost() << "\n";
-                if (!tech->getPrerequisites().empty()) {
-                    std::cout << "   Prerequisites: ";
-                    for (size_t j = 0; j < tech->getPrerequisites().size(); ++j) {
-                        if (j > 0) std::cout << ", ";
-                        std::cout << tech->getPrerequisites()[j];
-                    }
-                    std::cout << "\n";
-                }
-            }
+        std::vector<MenuItem> researchItems;
+        
+        for (size_t i = 0; i < available.size() && i < 10; ++i) {
+            auto tech = available[i];
+            std::ostringstream label;
+            label << tech->getName() << " (" << techCategoryToString(tech->getCategory())
+                  << ", Cost: " << tech->getCost() << " RP)";
+            
+            researchItems.push_back(MenuItem(label.str(), [&game, tech, &ui]() {
+                std::string result = game.startResearch(tech->getId());
+                ui.displayText(result, true);
+            }));
         }
         
-        std::cout << "\nOptions:\n";
-        std::cout << "R <number> - Start researching technology\n";
-        std::cout << "B - Back to main menu\n";
+        researchItems.push_back(MenuItem("Back to Main Menu", [&inResearchMenu]() {
+            inResearchMenu = false;
+        }));
         
-        std::string choice;
-        std::cout << "\nChoice: ";
-        std::getline(std::cin, choice);
+        std::ostringstream title;
+        title << "RESEARCH MENU (RP: " << empire->getResources().get(ResourceType::RESEARCH_POINTS) << ")";
         
-        if (choice == "b" || choice == "B") {
-            break;
-        } else if (choice.length() > 2 && (choice[0] == 'r' || choice[0] == 'R') && choice[1] == ' ') {
-            try {
-                int techNum = std::stoi(choice.substr(2));
-                if (techNum >= 1 && techNum <= static_cast<int>(available.size())) {
-                    auto tech = available[techNum - 1];
-                    std::string result = game.startResearch(tech->getId());
-                    std::cout << "\n" << result << "\n";
-                } else {
-                    std::cout << "\nInvalid technology number\n";
-                }
-            } catch (...) {
-                std::cout << "\nInvalid input\n";
-            }
+        int choice = ui.displayMenu(title.str(), researchItems);
+        
+        if (choice >= 0 && choice < static_cast<int>(researchItems.size())) {
+            researchItems[choice].action();
+        } else {
+            inResearchMenu = false;
         }
     }
 }
 
-void exploreMenu(Game& game) {
-    std::cout << "\n" << std::string(60, '=') << "\n";
-    std::cout << std::setw(38) << "GALAXY EXPLORATION" << "\n";
-    std::cout << std::string(60, '=') << "\n";
-    
+void exploreMenu(Game& game, UIManager& ui) {
     auto galaxy = game.getGalaxy();
-    
-    std::cout << "\nExplored Systems:\n";
-    for (const auto& system : galaxy->getExploredSystems()) {
-        std::cout << "  " << system->getName() << " (" << system->getX() << ", " 
-                 << system->getY() << ", " << system->getZ() << ")\n";
-        std::cout << "    Star: " << system->getStar().getStarType() << "\n";
-        std::cout << "    Planets: " << system->getPlanets().size() << "\n";
-    }
-    
-    std::cout << "\nUnexplored Systems:\n";
     auto unexplored = galaxy->getUnexploredSystems();
+    
+    std::ostringstream info;
+    info << "Explored Systems: " << galaxy->getExploredSystems().size() << "\n";
+    info << "Unexplored Systems: " << unexplored.size() << "\n\n";
+    
+    std::vector<MenuItem> exploreItems;
+    
     size_t showCount = std::min(unexplored.size(), size_t(10));
     for (size_t i = 0; i < showCount; ++i) {
         auto system = unexplored[i];
-        std::cout << "  " << (i + 1) << ". " << system->getName() << " (" 
-                 << system->getX() << ", " << system->getY() << ", " << system->getZ() << ")\n";
-    }
-    
-    if (unexplored.size() > 10) {
-        std::cout << "  ... and " << (unexplored.size() - 10) << " more\n";
-    }
-    
-    std::cout << "\nOptions:\n";
-    std::cout << "E <number> - Explore system by number\n";
-    std::cout << "B - Back\n";
-    
-    std::string choice;
-    std::cout << "\nChoice: ";
-    std::getline(std::cin, choice);
-    
-    if (choice.length() > 2 && (choice[0] == 'e' || choice[0] == 'E') && choice[1] == ' ') {
-        try {
-            int sysNum = std::stoi(choice.substr(2));
-            if (sysNum >= 1 && sysNum <= static_cast<int>(unexplored.size())) {
-                auto system = unexplored[sysNum - 1];
-                std::string result = game.exploreSystem(system->getName());
-                std::cout << "\n" << result << "\n";
-                
-                // Show planet details
-                for (const auto& planet : system->getPlanets()) {
-                    std::cout << "\n  Planet: " << planet->getName() << "\n";
-                    std::cout << "    Type: " << planet->getPlanetType() << "\n";
-                    std::cout << "    Minerals: " << planet->getMinerals().size() << " types\n";
-                }
+        std::ostringstream label;
+        label << "Explore " << system->getName() << " (" << system->getX() << "," 
+              << system->getY() << "," << system->getZ() << ")";
+        
+        exploreItems.push_back(MenuItem(label.str(), [&game, system, &ui]() {
+            std::string result = game.exploreSystem(system->getName());
+            std::ostringstream details;
+            details << result << "\n\nPlanets found:\n";
+            for (const auto& planet : system->getPlanets()) {
+                details << "  " << planet->getName() << " (" << planet->getPlanetType() << ")\n";
             }
-        } catch (...) {
-            std::cout << "\nInvalid input\n";
-        }
+            ui.displayText(details.str(), true);
+        }));
+    }
+    
+    exploreItems.push_back(MenuItem("Back to Main Menu", []() {}));
+    
+    int choice = ui.displayMenu("GALAXY EXPLORATION", exploreItems);
+    
+    if (choice >= 0 && choice < static_cast<int>(exploreItems.size())) {
+        exploreItems[choice].action();
     }
 }
 
-void fleetMenu(Game& game) {
-    std::cout << "\n" << std::string(60, '=') << "\n";
-    std::cout << std::setw(38) << "FLEET MANAGEMENT" << "\n";
-    std::cout << std::string(60, '=') << "\n";
-    
+void fleetMenu(Game& game, UIManager& ui) {
     auto fleets = game.getEmpire()->getFleets();
     
-    std::cout << "\nYour Fleets:\n";
+    std::ostringstream info;
+    info << "Your Fleets:\n\n";
+    
     for (size_t i = 0; i < fleets.size(); ++i) {
         auto fleet = fleets[i];
-        std::cout << "\n" << (i + 1) << ". " << fleet->getName() << "\n";
-        std::cout << "   Location: " << (fleet->getLocation() ? fleet->getLocation()->getName() : "Unknown") << "\n";
-        std::cout << "   Ships: " << fleet->getShips().size() << "\n";
-        std::cout << "   Combat Strength: " << fleet->getCombatStrength() << "\n";
-        
-        if (!fleet->getShips().empty()) {
-            std::cout << "   Ship List:\n";
-            for (const auto& ship : fleet->getShips()) {
-                std::cout << "     - " << ship->getName() << " (" << shipClassToString(ship->getShipClass()) << "): "
-                         << "Hull " << ship->getHull() << "/" << ship->getMaxHull() << ", "
-                         << "Shields " << ship->getShields() << "/" << ship->getMaxShields() << "\n";
-            }
-        }
+        info << (i + 1) << ". " << fleet->getName() << "\n";
+        info << "   Location: " << (fleet->getLocation() ? fleet->getLocation()->getName() : "Unknown") << "\n";
+        info << "   Ships: " << fleet->getShips().size() << "\n";
+        info << "   Combat Strength: " << fleet->getCombatStrength() << "\n";
     }
     
-    std::cout << "\nOptions:\n";
-    std::cout << "B <class> <fleet_name> - Build ship (Scout, Corvette, Frigate)\n";
-    std::cout << "M - Back to main menu\n";
-    
-    std::string choice;
-    std::cout << "\nChoice: ";
-    std::getline(std::cin, choice);
-    
-    if (choice.length() > 2 && (choice[0] == 'b' || choice[0] == 'B') && choice[1] == ' ') {
-        size_t firstSpace = choice.find(' ');
-        size_t secondSpace = choice.find(' ', firstSpace + 1);
-        
-        if (secondSpace != std::string::npos) {
-            std::string shipClass = choice.substr(firstSpace + 1, secondSpace - firstSpace - 1);
-            std::string fleetName = choice.substr(secondSpace + 1);
-            
-            ShipClass sc;
-            if (shipClass == "Scout" || shipClass == "scout") {
-                sc = ShipClass::SCOUT;
-            } else if (shipClass == "Corvette" || shipClass == "corvette") {
-                sc = ShipClass::CORVETTE;
-            } else if (shipClass == "Frigate" || shipClass == "frigate") {
-                sc = ShipClass::FRIGATE;
-            } else {
-                std::cout << "\nUnknown ship class\n";
-                return;
+    std::vector<MenuItem> fleetItems = {
+        MenuItem("Build Scout", [&game, &ui]() {
+            std::string fleetName = ui.getInput("Enter fleet name: ");
+            if (!fleetName.empty()) {
+                std::string result = game.buildShip(ShipClass::SCOUT, fleetName);
+                ui.displayText(result, true);
             }
-            
-            std::string result = game.buildShip(sc, fleetName);
-            std::cout << "\n" << result << "\n";
-        }
+        }),
+        MenuItem("Build Corvette", [&game, &ui]() {
+            std::string fleetName = ui.getInput("Enter fleet name: ");
+            if (!fleetName.empty()) {
+                std::string result = game.buildShip(ShipClass::CORVETTE, fleetName);
+                ui.displayText(result, true);
+            }
+        }),
+        MenuItem("Build Frigate", [&game, &ui]() {
+            std::string fleetName = ui.getInput("Enter fleet name: ");
+            if (!fleetName.empty()) {
+                std::string result = game.buildShip(ShipClass::FRIGATE, fleetName);
+                ui.displayText(result, true);
+            }
+        }),
+        MenuItem("Back to Main Menu", []() {})
+    };
+    
+    ui.displayText(info.str(), true);
+    
+    int choice = ui.displayMenu("FLEET MANAGEMENT", fleetItems);
+    
+    if (choice >= 0 && choice < static_cast<int>(fleetItems.size())) {
+        fleetItems[choice].action();
     }
 }
 
-void combatMenu(Game& game) {
-    std::cout << "\n" << std::string(60, '=') << "\n";
-    std::cout << std::setw(38) << "COMBAT SIMULATION" << "\n";
-    std::cout << std::string(60, '=') << "\n";
-    
+void combatMenu(Game& game, UIManager& ui) {
     auto fleets = game.getEmpire()->getFleets();
     
     if (fleets.size() < 2) {
-        std::cout << "\nNeed at least 2 fleets for combat simulation\n";
+        ui.displayText("Need at least 2 fleets for combat simulation", true);
         return;
     }
     
-    std::cout << "\nAvailable Fleets:\n";
+    std::ostringstream info;
+    info << "Available Fleets:\n\n";
     for (size_t i = 0; i < fleets.size(); ++i) {
-        std::cout << (i + 1) << ". " << fleets[i]->getName() 
-                 << " (Strength: " << fleets[i]->getCombatStrength() << ")\n";
+        info << (i + 1) << ". " << fleets[i]->getName() 
+             << " (Strength: " << fleets[i]->getCombatStrength() << ")\n";
     }
+    info << "\nSelect two fleets for combat simulation:";
     
-    std::cout << "\nEnter two fleet numbers to simulate combat (e.g., '1 2')\n";
-    std::cout << "Or 'B' to go back\n";
+    ui.displayText(info.str(), true);
     
-    std::string choice;
-    std::cout << "\nChoice: ";
-    std::getline(std::cin, choice);
+    int fleet1 = ui.getIntInput("Enter first fleet number: ", 0);
+    int fleet2 = ui.getIntInput("Enter second fleet number: ", 0);
     
-    if (choice == "b" || choice == "B") {
-        return;
-    }
-    
-    try {
-        size_t space = choice.find(' ');
-        if (space != std::string::npos) {
-            int idx1 = std::stoi(choice.substr(0, space)) - 1;
-            int idx2 = std::stoi(choice.substr(space + 1)) - 1;
-            
-            if (idx1 >= 0 && idx1 < static_cast<int>(fleets.size()) &&
-                idx2 >= 0 && idx2 < static_cast<int>(fleets.size())) {
-                
-                auto fleet1 = fleets[idx1];
-                auto fleet2 = fleets[idx2];
-                
-                std::cout << "\nSimulating combat between " << fleet1->getName() 
-                         << " and " << fleet2->getName() << "...\n";
-                std::string result = game.simulateCombat(fleet1->getName(), fleet2->getName());
-                std::cout << "\n" << result << "\n";
-            }
-        }
-    } catch (...) {
-        std::cout << "\nInvalid input\n";
+    if (fleet1 > 0 && fleet1 <= static_cast<int>(fleets.size()) &&
+        fleet2 > 0 && fleet2 <= static_cast<int>(fleets.size()) &&
+        fleet1 != fleet2) {
+        
+        std::string result = game.simulateCombat(
+            fleets[fleet1 - 1]->getName(),
+            fleets[fleet2 - 1]->getName()
+        );
+        ui.displayText(result, true);
+    } else {
+        ui.displayText("Invalid fleet selection", true);
     }
 }
 
-void showHelp() {
-    std::cout << "\n" << std::string(60, '=') << "\n";
-    std::cout << std::setw(32) << "HELP" << "\n";
-    std::cout << std::string(60, '=') << "\n";
-    std::cout << R"(
-This is a space empire building game inspired by Aurora 4X.
+void showHelp(UIManager& ui) {
+    std::string helpText = R"(
+AURORA 4X-LIKE - Help
 
 GAMEPLAY OVERVIEW:
 - Manage your empire's resources and population
@@ -294,33 +206,41 @@ Technologies are organized into eras:
 - Advanced: Cutting-edge technologies
 - Future: Experimental and theoretical tech
 
-Each technology requires research points and may have prerequisites.
-
 RESOURCES:
 - Minerals: Used for construction
 - Energy: Powers systems
 - Research Points: Generated each turn for research
-- Population: Grows over time on colonies
 
 COMBAT:
 Ships have hull and shields. Weapons have damage and accuracy.
 Combat is resolved in rounds until one side is defeated.
 
-EXPLORATION:
-Explore star systems to find planets for colonization and resources.
-
-Press ENTER to continue...
+MOUSE CONTROLS:
+- Click on menu items to select them
+- Use arrow keys if mouse is not available
+- Press ESC to go back
 )";
-    std::cin.get();
+    
+    ui.displayText(helpText, true);
 }
 
 int main() {
-    printHeader();
+    UIManager ui;
+    ui.init();
+    
+    // Display welcome screen
+    std::ostringstream welcome;
+    welcome << "AURORA 4X-LIKE: Space Empire Builder\n\n";
+    if (ui.hasMouseSupport()) {
+        welcome << "Mouse support enabled!\n";
+        welcome << "Click menu items to select them or use arrow keys + Enter.";
+    } else {
+        welcome << "Use arrow keys and Enter to navigate menus.";
+    }
+    ui.displayText(welcome.str(), true);
     
     // Get empire name
-    std::cout << "Enter your empire name (or press Enter for 'Earth Empire'): ";
-    std::string empireName;
-    std::getline(std::cin, empireName);
+    std::string empireName = ui.getInput("Enter your empire name (or press Enter for 'Earth Empire'): ");
     if (empireName.empty()) {
         empireName = "Earth Empire";
     }
@@ -328,47 +248,48 @@ int main() {
     // Create game
     Game game(empireName);
     
-    std::cout << "\nWelcome, leader of " << empireName << "!\n";
-    std::cout << "Your civilization has just achieved spaceflight capability.\n";
-    std::cout << "Guide your empire from pre-warp to the stars!\n";
+    std::ostringstream intro;
+    intro << "Welcome, leader of " << empireName << "!\n\n"
+          << "Your civilization has just achieved spaceflight capability.\n"
+          << "Guide your empire from pre-warp to the stars!";
+    ui.displayText(intro.str(), true);
     
-    std::cout << "\nPress ENTER to begin...";
-    std::cin.get();
-    
-    // Main game loop
-    while (true) {
-        printMenu();
-        std::string choice;
-        std::cout << "\nEnter your choice: ";
-        std::getline(std::cin, choice);
+    // Main game loop with mouse-driven menu
+    bool running = true;
+    while (running) {
+        std::vector<MenuItem> mainMenu = {
+            MenuItem("Empire Status", [&]() { displayEmpireStatus(game, ui); }),
+            MenuItem("Research", [&]() { researchMenu(game, ui); }),
+            MenuItem("Explore Galaxy", [&]() { exploreMenu(game, ui); }),
+            MenuItem("Fleet Management", [&]() { fleetMenu(game, ui); }),
+            MenuItem("Combat Simulation", [&]() { combatMenu(game, ui); }),
+            MenuItem("Advance Turn", [&]() { 
+                std::string result = game.advanceTurn();
+                auto empire = game.getEmpire();
+                std::ostringstream msg;
+                msg << result << "\n\n"
+                    << "Resources:\n"
+                    << "  Minerals: " << empire->getResources().get(ResourceType::MINERALS) << "\n"
+                    << "  Energy: " << empire->getResources().get(ResourceType::ENERGY) << "\n"
+                    << "  Research: " << empire->getResources().get(ResourceType::RESEARCH_POINTS);
+                ui.displayText(msg.str(), true);
+            }),
+            MenuItem("Help", [&]() { showHelp(ui); }),
+            MenuItem("Exit", [&]() { running = false; })
+        };
         
-        if (choice == "0") {
-            std::cout << "\nThank you for playing!\n";
-            break;
-        } else if (choice == "1") {
-            displayEmpireStatus(game);
-        } else if (choice == "2") {
-            researchMenu(game);
-        } else if (choice == "3") {
-            exploreMenu(game);
-        } else if (choice == "4") {
-            fleetMenu(game);
-        } else if (choice == "5") {
-            combatMenu(game);
-        } else if (choice == "6") {
-            std::string result = game.advanceTurn();
-            std::cout << "\n" << result << "\n";
-            
-            auto empire = game.getEmpire();
-            std::cout << "Resources: Minerals=" << empire->getResources().get(ResourceType::MINERALS)
-                     << ", Energy=" << empire->getResources().get(ResourceType::ENERGY)
-                     << ", Research=" << empire->getResources().get(ResourceType::RESEARCH_POINTS) << "\n";
-        } else if (choice == "7") {
-            showHelp();
-        } else {
-            std::cout << "\nInvalid choice. Please try again.\n";
+        int choice = ui.displayMenu("MAIN MENU", mainMenu);
+        
+        if (choice >= 0 && choice < static_cast<int>(mainMenu.size())) {
+            mainMenu[choice].action();
+        } else if (choice == -1) {
+            // User pressed ESC or back - treat as exit
+            running = false;
         }
     }
+    
+    ui.cleanup();
+    std::cout << "\nThank you for playing!\n";
     
     return 0;
 }

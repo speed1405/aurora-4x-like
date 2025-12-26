@@ -11,6 +11,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # Source files
 set(SOURCES
     src/main.cpp
+    src/ui.cpp
     src/resources.cpp
     src/research.cpp
     src/empire.cpp
@@ -21,6 +22,16 @@ set(SOURCES
 
 # Executable
 add_executable(aurora4x ${SOURCES})
+
+# Find and link ncurses library for mouse support (Unix-like systems only)
+if(UNIX)
+    find_package(Curses REQUIRED)
+    if(CURSES_FOUND)
+        include_directories(${CURSES_INCLUDE_DIR})
+        target_link_libraries(aurora4x ${CURSES_LIBRARIES})
+        add_definitions(-DUSE_NCURSES)
+    endif()
+endif()
 
 # Compiler warnings
 if(MSVC)
