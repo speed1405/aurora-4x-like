@@ -138,6 +138,13 @@ void fleetMenu(Game& game, UIManager& ui) {
     }
     
     std::vector<MenuItem> fleetItems = {
+        MenuItem("Build Fighter", [&game, &ui]() {
+            std::string fleetName = ui.getInput("Enter fleet name: ");
+            if (!fleetName.empty()) {
+                std::string result = game.buildShip(ShipClass::FIGHTER, fleetName);
+                ui.displayText(result, true);
+            }
+        }),
         MenuItem("Build Scout", [&game, &ui]() {
             std::string fleetName = ui.getInput("Enter fleet name: ");
             if (!fleetName.empty()) {
@@ -156,6 +163,34 @@ void fleetMenu(Game& game, UIManager& ui) {
             std::string fleetName = ui.getInput("Enter fleet name: ");
             if (!fleetName.empty()) {
                 std::string result = game.buildShip(ShipClass::FRIGATE, fleetName);
+                ui.displayText(result, true);
+            }
+        }),
+        MenuItem("Build Destroyer", [&game, &ui]() {
+            std::string fleetName = ui.getInput("Enter fleet name: ");
+            if (!fleetName.empty()) {
+                std::string result = game.buildShip(ShipClass::DESTROYER, fleetName);
+                ui.displayText(result, true);
+            }
+        }),
+        MenuItem("Build Cruiser", [&game, &ui]() {
+            std::string fleetName = ui.getInput("Enter fleet name: ");
+            if (!fleetName.empty()) {
+                std::string result = game.buildShip(ShipClass::CRUISER, fleetName);
+                ui.displayText(result, true);
+            }
+        }),
+        MenuItem("Build Battleship", [&game, &ui]() {
+            std::string fleetName = ui.getInput("Enter fleet name: ");
+            if (!fleetName.empty()) {
+                std::string result = game.buildShip(ShipClass::BATTLESHIP, fleetName);
+                ui.displayText(result, true);
+            }
+        }),
+        MenuItem("Build Carrier", [&game, &ui]() {
+            std::string fleetName = ui.getInput("Enter fleet name: ");
+            if (!fleetName.empty()) {
+                std::string result = game.buildShip(ShipClass::CARRIER, fleetName);
                 ui.displayText(result, true);
             }
         }),

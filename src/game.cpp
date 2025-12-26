@@ -116,20 +116,47 @@ std::string Game::buildShip(ShipClass shipClass, const std::string& fleetName) {
                           std::to_string(targetFleet->getShips().size() + 1);
     
     Weapon laser("Laser", 10, 0.7, 5);
+    Weapon heavyLaser("Heavy Laser", 15, 0.75, 6);
+    Weapon missile("Missile", 25, 0.55, 8);
+    Weapon railgun("Railgun", 20, 0.65, 6);
     std::shared_ptr<Ship> ship;
-    
-    if (shipClass == ShipClass::SCOUT) {
-        ship = std::make_shared<Ship>(shipName, shipClass, 50, 20,
-                                     std::vector<Weapon>{laser});
-    } else if (shipClass == ShipClass::CORVETTE) {
-        ship = std::make_shared<Ship>(shipName, shipClass, 100, 50,
-                                     std::vector<Weapon>{laser, laser});
-    } else if (shipClass == ShipClass::FRIGATE) {
-        Weapon betterLaser("Heavy Laser", 15, 0.75, 6);
-        ship = std::make_shared<Ship>(shipName, shipClass, 200, 100,
-                                     std::vector<Weapon>{betterLaser, betterLaser, betterLaser});
-    } else {
-        return "Unknown ship class";
+
+    switch (shipClass) {
+        case ShipClass::FIGHTER:
+            ship = std::make_shared<Ship>(shipName, shipClass, 30, 10,
+                                         std::vector<Weapon>{laser});
+            break;
+        case ShipClass::SCOUT:
+            ship = std::make_shared<Ship>(shipName, shipClass, 50, 20,
+                                         std::vector<Weapon>{laser});
+            break;
+        case ShipClass::CORVETTE:
+            ship = std::make_shared<Ship>(shipName, shipClass, 100, 50,
+                                         std::vector<Weapon>{laser, laser});
+            break;
+        case ShipClass::FRIGATE:
+            ship = std::make_shared<Ship>(shipName, shipClass, 200, 100,
+                                         std::vector<Weapon>{heavyLaser, heavyLaser, heavyLaser});
+            break;
+        case ShipClass::DESTROYER:
+            ship = std::make_shared<Ship>(shipName, shipClass, 300, 140,
+                                         std::vector<Weapon>{heavyLaser, heavyLaser, railgun, railgun});
+            break;
+        case ShipClass::CRUISER:
+            ship = std::make_shared<Ship>(shipName, shipClass, 500, 250,
+                                         std::vector<Weapon>{heavyLaser, heavyLaser, railgun, railgun, missile});
+            break;
+        case ShipClass::BATTLESHIP:
+            ship = std::make_shared<Ship>(shipName, shipClass, 900, 450,
+                                         std::vector<Weapon>{heavyLaser, heavyLaser, heavyLaser, railgun, railgun, missile, missile});
+            break;
+        case ShipClass::CARRIER:
+            // Carrier modeled as a tougher hull with modest direct weapons.
+            ship = std::make_shared<Ship>(shipName, shipClass, 700, 350,
+                                         std::vector<Weapon>{laser, laser, railgun, missile});
+            break;
+        default:
+            return "Unknown ship class";
     }
     
     targetFleet->addShip(ship);

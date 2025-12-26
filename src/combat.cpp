@@ -3,6 +3,56 @@
 #include <random>
 #include <sstream>
 
+static std::string makeBar(int value, int maxValue, int width) {
+    if (maxValue <= 0) {
+        return std::string(width, '-');
+    }
+    value = std::max(0, std::min(value, maxValue));
+    const int filled = static_cast<int>((static_cast<long long>(value) * width) / maxValue);
+    std::string bar;
+    bar.reserve(static_cast<size_t>(width));
+    for (int i = 0; i < width; ++i) {
+        bar.push_back(i < filled ? '#' : '-');
+    }
+    return bar;
+}
+
+static void appendFleetSnapshot(std::vector<std::string>& log, const Fleet& fleet) {
+    int totalHull = 0;
+    int totalMaxHull = 0;
+    int totalShields = 0;
+    int totalMaxShields = 0;
+
+    for (const auto& ship : fleet.getShips()) {
+        if (!ship) continue;
+        totalHull += ship->getHull();
+        totalMaxHull += ship->getMaxHull();
+        totalShields += ship->getShields();
+        totalMaxShields += ship->getMaxShields();
+    }
+
+    {
+        std::ostringstream ss;
+        ss << fleet.getName() << " | Ships: " << fleet.getShips().size()
+           << " | Hull " << totalHull << "/" << totalMaxHull
+           << " [" << makeBar(totalHull, totalMaxHull, 20) << "]"
+           << " | Shields " << totalShields << "/" << totalMaxShields
+           << " [" << makeBar(totalShields, totalMaxShields, 20) << "]";
+        log.push_back(ss.str());
+    }
+
+    for (const auto& ship : fleet.getShips()) {
+        if (!ship) continue;
+        std::ostringstream ss;
+        ss << "  - " << ship->getName() << " (" << shipClassToString(ship->getShipClass()) << ")"
+           << " H " << ship->getHull() << "/" << ship->getMaxHull()
+           << " [" << makeBar(ship->getHull(), ship->getMaxHull(), 12) << "]"
+           << " S " << ship->getShields() << "/" << ship->getMaxShields()
+           << " [" << makeBar(ship->getShields(), ship->getMaxShields(), 12) << "]";
+        log.push_back(ss.str());
+    }
+}
+
 std::string shipClassToString(ShipClass sc) {
     switch(sc) {
         case ShipClass::SCOUT: return "Scout";
@@ -165,6 +215,11 @@ void Combat::resolveRound() {
     // Remove destroyed ships
     attacker->removeDestroyed();
     defender->removeDestroyed();
+
+    // "Visualization": append a compact status snapshot after the round
+    combatLog.push_back("--- Status ---");
+    appendFleetSnapshot(combatLog, *attacker);
+    appendFleetSnapshot(combatLog, *defender);
 }
 
 std::shared_ptr<Fleet> Combat::resolve(int maxRounds) {
