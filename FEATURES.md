@@ -141,18 +141,31 @@ Alpha Centauri (10, -5, 2)
 
 ### 6. User Interface
 
+**Mouse-Driven Interface (Linux/Mac):**
+- Click on menu items to select them
+- Full mouse support using ncurses
+- Automatic detection of mouse capabilities
+- Fallback to keyboard navigation if mouse unavailable
+
+**Keyboard Navigation:**
+- Arrow keys (↑/↓) to navigate menus
+- Enter to select items
+- ESC or Q to go back
+- Text input for prompts
+
 **Main Menu System:**
-1. Empire Status - View empire statistics and resources
-2. Research - Browse tech tree, start research
-3. Explore Galaxy - Discover star systems
-4. Fleet Management - Build ships, manage fleets
-5. Combat Simulation - Test fleet battles
-6. Advance Turn - Progress game time
-7. Help - View game instructions
-0. Exit - Quit game
+- Empire Status - View empire statistics and resources
+- Research - Browse tech tree, start research (click to select technologies)
+- Explore Galaxy - Discover star systems (click to explore)
+- Fleet Management - Build ships, manage fleets
+- Combat Simulation - Test fleet battles
+- Advance Turn - Progress game time
+- Help - View game instructions
+- Exit - Quit game
 
 **Interactive Features:**
-- Clear menu navigation
+- Mouse-driven menu selection
+- Clear visual feedback (highlighted items)
 - Detailed information displays
 - Input validation
 - Helpful prompts
