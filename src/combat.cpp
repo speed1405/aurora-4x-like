@@ -115,7 +115,7 @@ void Combat::resolveRound() {
             }
             
             if (!operationalTargets.empty()) {
-                std::uniform_int_distribution<> dis(0, operationalTargets.size() - 1);
+                std::uniform_int_distribution<std::size_t> dis(0, operationalTargets.size() - 1);
                 auto target = operationalTargets[dis(gen)];
                 
                 int damage = ship->fireAt();
@@ -144,7 +144,7 @@ void Combat::resolveRound() {
             }
             
             if (!operationalTargets.empty()) {
-                std::uniform_int_distribution<> dis(0, operationalTargets.size() - 1);
+                std::uniform_int_distribution<std::size_t> dis(0, operationalTargets.size() - 1);
                 auto target = operationalTargets[dis(gen)];
                 
                 int damage = ship->fireAt();

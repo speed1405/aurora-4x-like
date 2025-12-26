@@ -11,7 +11,7 @@ Star::Star(const std::string& nm, const std::string& type) : name(nm) {
     static std::mt19937 gen(rd());
     
     if (type.empty()) {
-        std::uniform_int_distribution<> dis(0, types.size() - 1);
+        std::uniform_int_distribution<std::size_t> dis(0, types.size() - 1);
         starType = types[dis(gen)];
     } else {
         starType = type;
@@ -27,7 +27,7 @@ Planet::Planet(const std::string& nm, const std::string& type)
     static std::mt19937 gen(rd());
     
     if (type.empty()) {
-        std::uniform_int_distribution<> dis(0, types.size() - 1);
+        std::uniform_int_distribution<std::size_t> dis(0, types.size() - 1);
         planetType = types[dis(gen)];
     } else {
         planetType = type;
@@ -116,6 +116,7 @@ void Galaxy::generateGalaxy(int numSystems) {
 }
 
 std::string Galaxy::generateStarName(int index) {
+    (void)index;
     static const std::vector<std::string> prefixes = {
         "Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta", "Eta",
         "Theta", "Iota", "Kappa", "Lambda", "Mu", "Nu", "Xi", "Omicron"
@@ -127,8 +128,8 @@ std::string Galaxy::generateStarName(int index) {
     
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    std::uniform_int_distribution<> prefixDist(0, prefixes.size() - 1);
-    std::uniform_int_distribution<> suffixDist(0, suffixes.size() - 1);
+    std::uniform_int_distribution<std::size_t> prefixDist(0, prefixes.size() - 1);
+    std::uniform_int_distribution<std::size_t> suffixDist(0, suffixes.size() - 1);
     
     return prefixes[prefixDist(gen)] + " " + suffixes[suffixDist(gen)];
 }

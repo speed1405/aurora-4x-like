@@ -77,7 +77,7 @@ public:
     bool research(const std::string& techId, int points);
     std::shared_ptr<Technology> getTech(const std::string& techId) const;
     bool isResearched(const std::string& techId) const;
-    int getResearchedCount() const { return researched.size(); }
+    int getResearchedCount() const { return static_cast<int>(researched.size()); }
 };
 
 #endif // RESEARCH_H

@@ -1,5 +1,6 @@
 #include "game.h"
 #include <algorithm>
+#include <cctype>
 
 Game::Game(const std::string& empireName)
     : empire(std::make_shared<Empire>(empireName)),
@@ -46,11 +47,15 @@ std::string Game::advanceTurn() {
 }
 
 std::string Game::exploreSystem(const std::string& systemName) {
+    const auto toLowerChar = [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    };
+
     for (auto& system : galaxy->getSystems()) {
         std::string sysNameLower = system->getName();
         std::string searchNameLower = systemName;
-        std::transform(sysNameLower.begin(), sysNameLower.end(), sysNameLower.begin(), ::tolower);
-        std::transform(searchNameLower.begin(), searchNameLower.end(), searchNameLower.begin(), ::tolower);
+        std::transform(sysNameLower.begin(), sysNameLower.end(), sysNameLower.begin(), toLowerChar);
+        std::transform(searchNameLower.begin(), searchNameLower.end(), searchNameLower.begin(), toLowerChar);
         
         if (sysNameLower == searchNameLower) {
             system->explore();
@@ -79,11 +84,14 @@ std::string Game::buildShip(ShipClass shipClass, const std::string& fleetName) {
     // Find fleet
     std::shared_ptr<Fleet> targetFleet;
     std::string fleetNameLower = fleetName;
-    std::transform(fleetNameLower.begin(), fleetNameLower.end(), fleetNameLower.begin(), ::tolower);
+    const auto toLowerChar = [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    };
+    std::transform(fleetNameLower.begin(), fleetNameLower.end(), fleetNameLower.begin(), toLowerChar);
     
     for (auto& fleet : empire->getFleets()) {
         std::string fname = fleet->getName();
-        std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+        std::transform(fname.begin(), fname.end(), fname.begin(), toLowerChar);
         if (fname == fleetNameLower) {
             targetFleet = fleet;
             break;
@@ -121,14 +129,18 @@ std::string Game::buildShip(ShipClass shipClass, const std::string& fleetName) {
 
 std::string Game::simulateCombat(const std::string& fleet1Name, const std::string& fleet2Name) {
     std::shared_ptr<Fleet> fleet1, fleet2;
+
+    const auto toLowerChar = [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    };
     
     std::string f1Lower = fleet1Name, f2Lower = fleet2Name;
-    std::transform(f1Lower.begin(), f1Lower.end(), f1Lower.begin(), ::tolower);
-    std::transform(f2Lower.begin(), f2Lower.end(), f2Lower.begin(), ::tolower);
+    std::transform(f1Lower.begin(), f1Lower.end(), f1Lower.begin(), toLowerChar);
+    std::transform(f2Lower.begin(), f2Lower.end(), f2Lower.begin(), toLowerChar);
     
     for (auto& fleet : empire->getFleets()) {
         std::string fname = fleet->getName();
-        std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
+        std::transform(fname.begin(), fname.end(), fname.begin(), toLowerChar);
         if (fname == f1Lower) fleet1 = fleet;
         if (fname == f2Lower) fleet2 = fleet;
     }
