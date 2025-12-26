@@ -20,6 +20,10 @@ set(SOURCES
     src/game.cpp
 )
 
+if (WIN32)
+    list(APPEND SOURCES src/battle_viewer_win32.cpp)
+endif()
+
 # Executable
 add_executable(aurora4x ${SOURCES})
 

@@ -5,6 +5,23 @@
 #include <vector>
 #include <memory>
 
+struct CombatShipState {
+    std::string name;
+    ShipClass shipClass;
+    int hull;
+    int maxHull;
+    int shields;
+    int maxShields;
+};
+
+struct CombatFrame {
+    int round;
+    std::string attackerName;
+    std::string defenderName;
+    std::vector<CombatShipState> attackerShips;
+    std::vector<CombatShipState> defenderShips;
+};
+
 enum class ShipClass {
     SCOUT,
     FIGHTER,
@@ -89,6 +106,9 @@ private:
     std::shared_ptr<Fleet> defender;
     std::vector<std::string> combatLog;
     int round;
+    std::vector<CombatFrame> frames;
+
+    void recordFrame();
 
 public:
     Combat(std::shared_ptr<Fleet> atk, std::shared_ptr<Fleet> def);
@@ -96,6 +116,7 @@ public:
     void resolveRound();
     std::shared_ptr<Fleet> resolve(int maxRounds = 10);
     const std::vector<std::string>& getLog() const { return combatLog; }
+    const std::vector<CombatFrame>& getFrames() const { return frames; }
 };
 
 #endif // COMBAT_H
