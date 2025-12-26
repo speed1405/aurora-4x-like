@@ -52,11 +52,38 @@ No external dependencies required! The game uses only C++ standard library.
 
 ### Building
 
+#### Quick Build (Recommended)
+
+**Linux/Mac:**
 ```bash
 # Clone the repository
 git clone https://github.com/speed1405/aurora-4x-like.git
 cd aurora-4x-like
 
+# Build using the build script
+./build.sh
+
+# Run the game
+./build/aurora4x
+```
+
+**Windows:**
+```batch
+REM Clone the repository
+git clone https://github.com/speed1405/aurora-4x-like.git
+cd aurora-4x-like
+
+REM Build using the build script
+build.bat
+
+REM Run the game
+build\Release\aurora4x.exe
+```
+
+#### Manual Build
+
+**Linux/Mac:**
+```bash
 # Build the game
 mkdir build
 cd build
@@ -67,8 +94,7 @@ make
 ./aurora4x
 ```
 
-### Windows Build
-
+**Windows:**
 ```bash
 mkdir build
 cd build
