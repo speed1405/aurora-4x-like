@@ -44,21 +44,45 @@ The game features Aurora 4X-style resources:
 
 ## Installation
 
-No dependencies required! The game uses only Python's standard library.
+No external dependencies required! The game uses only C++ standard library.
+
+### Requirements
+- C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+)
+- CMake 3.10 or higher
+
+### Building
 
 ```bash
 # Clone the repository
 git clone https://github.com/speed1405/aurora-4x-like.git
 cd aurora-4x-like
 
+# Build the game
+mkdir build
+cd build
+cmake ..
+make
+
 # Run the game
-python3 main.py
+./aurora4x
+```
+
+### Windows Build
+
+```bash
+mkdir build
+cd build
+cmake ..
+cmake --build . --config Release
+
+# Run the game
+.\Release\aurora4x.exe
 ```
 
 ## How to Play
 
 ### Starting the Game
-1. Run `python3 main.py`
+1. Run `./aurora4x` (Linux/Mac) or `aurora4x.exe` (Windows)
 2. Enter your empire name or press Enter for default "Earth Empire"
 3. Start managing your space empire!
 
@@ -141,54 +165,67 @@ The game is turn-based. Each turn:
 
 ```
 aurora-4x-like/
-├── main.py              # Main game entry point and CLI
-├── src/
-│   ├── __init__.py      # Package initialization
-│   ├── game.py          # Main game controller
-│   ├── empire.py        # Empire and colony management
-│   ├── research.py      # Technology and research tree
-│   ├── resources.py     # Resource management system
-│   ├── combat.py        # Combat system and ships
-│   └── galaxy.py        # Star systems and galaxy generation
-├── requirements.txt     # Python dependencies (none currently)
+├── CMakeLists.txt       # CMake build configuration
+├── include/             # Header files
+│   ├── game.h          # Main game controller
+│   ├── empire.h        # Empire and colony management
+│   ├── research.h      # Technology and research tree
+│   ├── resources.h     # Resource management system
+│   ├── combat.h        # Combat system and ships
+│   └── galaxy.h        # Star systems and galaxy generation
+├── src/                # Implementation files
+│   ├── main.cpp        # Main game entry point and CLI
+│   ├── game.cpp        # Main game controller implementation
+│   ├── empire.cpp      # Empire management implementation
+│   ├── research.cpp    # Research tree implementation
+│   ├── resources.cpp   # Resource system implementation
+│   ├── combat.cpp      # Combat system implementation
+│   └── galaxy.cpp      # Galaxy generation implementation
 ├── .gitignore          # Git ignore rules
 └── README.md           # This file
 ```
 
 ## Code Architecture
 
+The game is written in modern C++17 with a modular design.
+
 ### Core Modules
 
-**game.py**: Main game controller that ties all systems together
+**game.h/cpp**: Main game controller that ties all systems together
 - Initializes empire, galaxy, and starting conditions
 - Provides high-level game operations
 - Manages turn progression
 
-**empire.py**: Empire and colony management
+**empire.h/cpp**: Empire and colony management
 - `Empire`: Player's civilization with resources, research, and fleets
 - `Colony`: Individual colony on a planet
 
-**research.py**: Technology system
+**research.h/cpp**: Technology system
 - `Technology`: Individual tech with prerequisites and costs
 - `ResearchTree`: Manages entire tech tree and research progress
 - Organized by category and era
 
-**resources.py**: Resource management
+**resources.h/cpp**: Resource management
 - `ResourceStorage`: Tracks and manages all resources
 - `ResourceNode`: Represents mineral deposits
 - Production and consumption mechanics
 
-**combat.py**: Space combat system
+**combat.h/cpp**: Space combat system
 - `Ship`: Individual ships with weapons, hull, and shields
 - `Fleet`: Collections of ships
 - `Combat`: Resolves battles between fleets
 - `Weapon`: Weapon systems with damage and accuracy
 
-**galaxy.py**: Universe generation
+**galaxy.h/cpp**: Universe generation
 - `Galaxy`: Overall game map
 - `StarSystem`: Individual star systems with planets
 - `Planet`: Planets with types and mineral deposits
 - `Star`: Star types
+
+**main.cpp**: Command-line interface
+- Interactive menu system
+- Display functions
+- User input handling
 
 ## Future Enhancements
 

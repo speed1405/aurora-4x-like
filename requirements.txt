@@ -1,3 +1,0 @@
-# Aurora 4X-like Game Dependencies
-# No external dependencies required for basic implementation
-# Standard library only
