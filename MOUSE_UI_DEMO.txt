@@ -1,0 +1,68 @@
+AURORA 4X-LIKE - MOUSE-DRIVEN UI DEMONSTRATION
+==============================================
+
+STARTUP SCREEN:
+--------------------------------------------------------------------------------
+AURORA 4X-LIKE: Space Empire Builder
+
+Mouse support enabled!
+Click menu items to select them or use arrow keys + Enter.
+
+Press any key to continue...
+--------------------------------------------------------------------------------
+
+MAIN MENU (Mouse Clickable):
+--------------------------------------------------------------------------------
+MAIN MENU
+================================================================================
+Empire Status          <- Click here or use arrow keys
+Research
+Explore Galaxy
+Fleet Management
+Combat Simulation
+Advance Turn
+Help
+Exit
+
+Use mouse to click or arrow keys + Enter to select
+--------------------------------------------------------------------------------
+
+EMPIRE STATUS SCREEN:
+--------------------------------------------------------------------------------
+EMPIRE: Earth Empire
+
+Turn: 0
+Colonies: 1
+Fleets: 1
+Researched Technologies: 0
+Current Research: None
+
+Resources:
+  Minerals: 0
+  Energy: 0
+  Research Points: 0
+
+Press any key to continue...
+--------------------------------------------------------------------------------
+
+RESEARCH MENU (Mouse Clickable):
+--------------------------------------------------------------------------------
+RESEARCH MENU (RP: 5)
+================================================================================
+Basic Mining (Mining, Cost: 100 RP)          <- Click to start researching
+Nuclear Power (Power, Cost: 150 RP)
+Ion Drive (Propulsion, Cost: 200 RP)
+Missile Technology (Weapons, Cost: 150 RP)
+Basic Sensors (Sensors, Cost: 100 RP)
+Back to Main Menu
+
+Use mouse to click or arrow keys + Enter to select
+--------------------------------------------------------------------------------
+
+KEY FEATURES:
+✓ Mouse support with ncurses (Linux/Mac)
+✓ Click menu items to select them
+✓ Keyboard fallback (arrow keys + Enter)
+✓ Visual feedback (highlighted items)
+✓ ESC or Q to go back
+✓ Intuitive navigation throughout all menus

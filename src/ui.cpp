@@ -1,6 +1,7 @@
 #include "ui.h"
 #include <iostream>
 #include <sstream>
+#include <limits>
 
 UIManager::UIManager() 
     : initialized(false), mouseEnabled(false), selectedItem(0) {
@@ -25,11 +26,12 @@ void UIManager::init() {
     
     // Try to enable mouse support
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
-    mouseEnabled = true;
     
     // Check if mouse is actually available
     if (has_mouse()) {
         mouseEnabled = true;
+    } else {
+        mouseEnabled = false;
     }
     
     initialized = true;
@@ -169,7 +171,7 @@ int UIManager::displayMenu(const std::string& title, const std::vector<MenuItem>
             if (selectedItem < static_cast<int>(positionedItems.size()) - 1) {
                 selectedItem++;
             }
-        } else if (ch == '\n' || ch == KEY_ENTER) {
+        } else if (ch == '\n' || ch == 13) {  // Enter key (newline or carriage return)
             if (positionedItems[selectedItem].enabled) {
                 return selectedItem;
             }
