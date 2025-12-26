@@ -21,7 +21,17 @@ void displayEmpireStatus(Game& game, UIManager& ui) {
     oss << "Colonies: " << empire->getColonies().size() << "\n";
     oss << "Fleets: " << empire->getFleets().size() << "\n";
     oss << "Researched Technologies: " << empire->getResearch().getResearchedCount() << "\n";
-    oss << "Current Research: " << (empire->getCurrentResearch().empty() ? "None" : empire->getCurrentResearch()) << "\n";
+    if (empire->getCurrentResearch().empty()) {
+        oss << "Current Research: None\n";
+    } else {
+        auto tech = empire->getResearch().getTech(empire->getCurrentResearch());
+        if (tech) {
+            oss << "Current Research: " << tech->getName()
+                << " (" << tech->getProgress() << "/" << tech->getCost() << ")\n";
+        } else {
+            oss << "Current Research: " << empire->getCurrentResearch() << "\n";
+        }
+    }
     oss << "\nResources:\n";
     oss << "  Minerals: " << empire->getResources().get(ResourceType::MINERALS) << "\n";
     oss << "  Energy: " << empire->getResources().get(ResourceType::ENERGY) << "\n";
@@ -56,7 +66,15 @@ void researchMenu(Game& game, UIManager& ui) {
         }));
         
         std::ostringstream title;
-        title << "RESEARCH MENU (RP: " << empire->getResources().get(ResourceType::RESEARCH_POINTS) << ")";
+        title << "RESEARCH MENU (RP: " << empire->getResources().get(ResourceType::RESEARCH_POINTS);
+        if (!empire->getCurrentResearch().empty()) {
+            auto current = empire->getResearch().getTech(empire->getCurrentResearch());
+            if (current) {
+                title << ", Current: " << current->getName() << " "
+                      << current->getProgress() << "/" << current->getCost();
+            }
+        }
+        title << ")";
         
         int choice = ui.displayMenu(title.str(), researchItems);
         
@@ -271,7 +289,19 @@ int main() {
                     << "Resources:\n"
                     << "  Minerals: " << empire->getResources().get(ResourceType::MINERALS) << "\n"
                     << "  Energy: " << empire->getResources().get(ResourceType::ENERGY) << "\n"
-                    << "  Research: " << empire->getResources().get(ResourceType::RESEARCH_POINTS);
+                    << "  Research: " << empire->getResources().get(ResourceType::RESEARCH_POINTS) << "\n";
+
+                if (empire->getCurrentResearch().empty()) {
+                    msg << "Current Research: None";
+                } else {
+                    auto tech = empire->getResearch().getTech(empire->getCurrentResearch());
+                    if (tech) {
+                        msg << "Current Research: " << tech->getName()
+                            << " (" << tech->getProgress() << "/" << tech->getCost() << ")";
+                    } else {
+                        msg << "Current Research: " << empire->getCurrentResearch();
+                    }
+                }
                 ui.displayText(msg.str(), true);
             }),
             MenuItem("Help", [&]() { showHelp(ui); }),

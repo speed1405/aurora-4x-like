@@ -5,6 +5,13 @@
 #include <ncurses.h>
 #endif
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
 #include <string>
 #include <vector>
 #include <functional>
@@ -18,7 +25,7 @@ struct MenuItem {
     bool enabled;
     
     MenuItem(const std::string& lbl, std::function<void()> act, bool en = true)
-        : label(lbl), action(act), x(0), y(0), width(lbl.length()), enabled(en) {}
+        : label(lbl), action(act), x(0), y(0), width(static_cast<int>(lbl.length())), enabled(en) {}
 };
 
 // UI Manager class for handling mouse-driven interface
@@ -58,6 +65,14 @@ private:
     
 #ifdef USE_NCURSES
     WINDOW* mainWin;
+#endif
+
+#if !defined(USE_NCURSES) && defined(_WIN32)
+    HANDLE hIn;
+    HANDLE hOut;
+    DWORD originalInMode;
+    WORD originalOutAttributes;
+    bool winConsoleAvailable;
 #endif
     
     void drawMenuItem(const MenuItem& item, bool highlighted);
