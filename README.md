@@ -44,11 +44,16 @@ The game features Aurora 4X-style resources:
 
 ## Installation
 
-No external dependencies required! The game uses only C++ standard library.
-
 ### Requirements
 - C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+)
 - CMake 3.10 or higher
+- **ncurses library** (Linux/Mac only, for mouse-driven UI)
+
+#### Installing ncurses:
+- **Linux (Ubuntu/Debian):** `sudo apt-get install libncurses5-dev libncursesw5-dev`
+- **Linux (Fedora/RHEL):** `sudo dnf install ncurses-devel`
+- **Mac:** Usually pre-installed, or install via: `brew install ncurses`
+- **Windows:** Mouse support not available (keyboard navigation only)
 
 ### Building
 
@@ -112,6 +117,19 @@ cmake --build . --config Release
 2. Enter your empire name or press Enter for default "Earth Empire"
 3. Start managing your space empire!
 
+### Controls
+
+**Mouse Support (Linux/Mac with ncurses):**
+- Click on any menu item to select it
+- Navigate through menus by clicking
+- Mouse support is automatically enabled if available
+
+**Keyboard Navigation:**
+- Use **Arrow Keys** (↑/↓) to navigate menu items
+- Press **Enter** to select the highlighted item
+- Press **ESC** or **Q** to go back to the previous menu
+- Type text when prompted for input
+
 ### Game Loop
 The game is turn-based. Each turn:
 - Resources are produced automatically
@@ -120,22 +138,22 @@ The game is turn-based. Each turn:
 
 ### Main Menu Options
 
-**1. Empire Status**
+**Empire Status**
 - View your empire's current state
 - Check resources, colonies, fleets
 - See research progress
 
-**2. Research**
+**Research**
 - View available technologies
-- Start researching new technologies
+- Click or select technologies to start researching
 - Technologies unlock based on prerequisites
 
-**3. Explore Galaxy**
+**Explore Galaxy**
 - View explored and unexplored star systems
-- Explore new systems to discover planets
+- Click to explore new systems and discover planets
 - Find colonization opportunities
 
-**4. Fleet Management**
+**Fleet Management**
 - View your fleets and ships
 - Build new ships (Scout, Corvette, Frigate)
 - Check ship status and combat readiness

@@ -11,10 +11,17 @@ This document provides detailed instructions for building the Aurora 4X-Like exe
 ### Linux/Mac
 - GCC 7+ or Clang 5+
 - Make
+- **ncurses development libraries** (for mouse-driven UI)
+
+#### Installing ncurses:
+- **Ubuntu/Debian:** `sudo apt-get install libncurses5-dev libncursesw5-dev`
+- **Fedora/RHEL:** `sudo dnf install ncurses-devel`
+- **macOS:** Usually pre-installed, or: `brew install ncurses`
 
 ### Windows
 - Visual Studio 2017+ with C++ support
 - Or MinGW with GCC 7+
+- **Note:** Mouse support requires ncurses, which is not available on Windows. The game will fall back to keyboard-only navigation.
 
 ## Quick Build
 
@@ -211,6 +218,27 @@ Update your compiler if necessary.
 Make the build script executable:
 ```bash
 chmod +x build.sh
+```
+
+### ncurses Not Found (Linux/Mac)
+
+If CMake cannot find ncurses:
+1. Install the ncurses development libraries (see Prerequisites)
+2. Clear the build directory and try again:
+   ```bash
+   rm -rf build
+   mkdir build
+   cd build
+   cmake ..
+   make
+   ```
+
+### Mouse Not Working
+
+The game requires ncurses with mouse support:
+- **Linux/Mac:** Ensure ncurses is installed and your terminal supports mouse events
+- **Windows:** Mouse support is not available; use keyboard navigation (arrow keys + Enter)
+- Some terminals (like tmux) may require additional configuration for mouse support
 ```
 
 ## Binary Distribution
