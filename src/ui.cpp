@@ -125,6 +125,8 @@ int UIManager::displayMenu(const std::string& title, const std::vector<MenuItem>
     for (size_t i = 0; i < positionedItems.size(); ++i) {
         positionedItems[i].y = startY + i * 2;
         positionedItems[i].x = menuX;
+        // Update width to account for actual label length
+        positionedItems[i].width = positionedItems[i].label.length();
     }
     
     selectedItem = 0;
